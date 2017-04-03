@@ -28,9 +28,9 @@ from sklearn import preprocessing
 
 '''
 
-allFile, allLine = '../origData/Address_First_LineDict.csv', 139445;
-sampleForTrain, totalForTrain = 'trainSample.csv', 2000;
-sampleForTest, totalForTest = 'testSample.csv', 100;
+allFile = '../origData/Address_First_LineDict.csv';
+totalForTrain = 2000;
+totalForTest = 100;
 
 
 sampleData = []
@@ -40,12 +40,21 @@ sampleWords = []
 testWords = []
 
 def countAlpha(w):
-    return countTotalAndMax(re.split(r'[^a-zA-Z-]', w));
+    return countTotalAndMax(re.split(r'[^a-zA-Z.]', w));
     
 def countNumber(w):
     return countTotalAndMax(re.split(r'[^0-9#.-]+', w));
 
+def isNumber(w):
+    s, t = countAlpha(w)
+    return s < 1;
 
+def isAlpha(w):
+    if len(re.split(r'[^a-zA-Z.]', w)) == 1 : return True;
+    if len(re.split(r'\'', w)) == 2 : return True;
+    return False;
+
+# return (total length, maximum length) of words
 def countTotalAndMax(words):
     t = 0.0;
     s = 0.0;
@@ -57,12 +66,32 @@ def countTotalAndMax(words):
             s += wwlen;
     return s, t
 
+# if all alpha = 1, is Number = -1, other  unknown = 0
+def guessType(w):
+    if isAlpha(w) : return 1;
+    if isNumber(w): return -1;
+    return 0;
+
+# 1st, 2nd, 3rd, 4-9th, 0-9fl
+def isSpecWord(w):
+    if re.match(r'^[0-9]*1ST$', w): return True;
+    if re.match(r'^[0-9]*2ND$', w): return True;
+    if re.match(r'^[0-9]*3RD$', w): return True;
+    if re.match(r'^[0-9]*[4-9]TH$', w): return True;
+    if re.match(r'^[0-9]+FL$', w): return True;
+    return False;
+
 def prepareData(wordsfreq):
     sampleData = []
+    infos = []
     i = 0;
     for row in wordsfreq:
         word = row[0];
         freq = row[1];
+        #if isSpecWord(word) : continue;
+        #if guessType(word) != 0 : continue;
+        #if not re.match(r'[,-]{1}', word) : continue;
+        infos.append(row);
         wordLen = len(word);
         alen, amax = countAlpha(word);
         nlen, nmax = countNumber(word);
@@ -70,15 +99,19 @@ def prepareData(wordsfreq):
         sampleData.append(sample);
         sampleWords.append([word, freq])
         i += 1;
-    return sampleData;
+    return sampleData, infos;
 
 
 if __name__ == '__main__':
 
-    citynames = es.extractFreqBetween(es.readAll('../origData/Provider_Organization_NameDict.csv'), 200);
-    print(len(citynames))
-    samples = prepareData(citynames)
-    print(len(samples))
+    freqData = es.extractFreqBetween(es.readAll('../origData/geoname.csv'), 300);
+    print('total extracted', len(freqData))
+    samples, sampleInfo = prepareData(freqData)
+    print('total samples',  len(samples))
+    
+    if len(samples) == 0:
+        print ('samples is empty, exit');
+        exit(0);
 
     
     X = np.array(samples);
@@ -95,7 +128,7 @@ if __name__ == '__main__':
     
     i = 0;
     stat = {}
-    for item in citynames :
+    for item in sampleInfo :
         #print (item, r[i])
         if r[i] in stat:
             stat[r[i]].append(item);
@@ -106,8 +139,8 @@ if __name__ == '__main__':
     for k in stat.keys():
         s = len(stat[k])
         print (k, 'size:', s)
-        if s < len(citynames) /2 :
-            print (k, stat[k]);
+        #if s < len(sampleInfo) /2 :
+        print (k, stat[k]);
 
     ax.scatter(X[:, 3], X[:, 0], X[:, 2], c=labels.astype(np.float))
 

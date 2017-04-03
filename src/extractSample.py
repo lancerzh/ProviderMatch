@@ -69,9 +69,10 @@ def readAll(filename):
     with open(filename, 'r', encoding='utf-8') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in spamreader:
-            word = row[0];
+            word = row[0].strip('-,');
             freq = int(row[1]);
             allData.append([word, freq])
+    print('total of data', len(allData))
     return allData;
 
 

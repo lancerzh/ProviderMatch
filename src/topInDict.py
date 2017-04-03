@@ -4,6 +4,7 @@ Created on Mar 29, 2017
 @author: lancer
 '''
 
+import re
 import extractSample as es
 import dictMatch;
 
@@ -19,11 +20,13 @@ if __name__ == '__main__':
     citynames = data2Map(es.extractFreqBetween(es.readAll('../origData/Address_City_NameDict.csv'), 200))
     peopleFirstName = data2Map(es.extractFreqBetween(es.readAll('../origData/Provider_First_Name.csv'), 200))
     peopleLastName = data2Map(es.extractFreqBetween(es.readAll('../origData/Provider_Last_Name.csv'), 200))
+    geoName = data2Map(es.extractFreqBetween(es.readAll('../origData/geoname.csv'), 200))
     print (len(citynames))
     print (len(peopleFirstName))
     print (len(peopleLastName))
+    print (len(geoName))
     
-    allData = es.extractFreqBetween(es.readAll('../origData/Provider_Last_Name.csv'), 100)
+    allData = es.extractFreqBetween(es.readAll('../origData/Provider_Organization_NameDict.csv'), 100)
     #top100 = es.extractTopFreq(allData, 100000);
     top100 = allData;
     
@@ -31,32 +34,44 @@ if __name__ == '__main__':
     cityNameCount = 0;
     firstNameCount = 0;
     lastNameCount = 0;
+    geoNameCount = 0;
     englishDictCount = 0;
     unknownCount = 0
+    unknownWords = []
     for word, freq in top100:
-        if not dictMatch.hasWord(word) :
-            if word in citynames :
-                #print (i, word, 'is a city name')
-                cityNameCount += 1;
-            elif word in peopleFirstName :
-                #print (i, word, 'is a First name')
-                firstNameCount += 1;
-            elif word in peopleLastName :
-                #print (i, word, 'is a Last name')
-                lastNameCount += 1;
-            else :
-                unknownCount += 1;
-                print (i, word, freq)
-                #b = dictMatch.extractBests(word)
-                #print (i, word, freq, b)
-        else :
+        if not re.match(r'[A-Z]+', word): continue;
+        if dictMatch.hasWord(word) :
             englishDictCount += 1;
+        elif word in citynames :
+            #print (i, word, 'is a city name')
+            cityNameCount += 1;
+        elif word in peopleFirstName :
+            #print (i, word, 'is a First name')
+            firstNameCount += 1;
+        elif word in peopleLastName :
+            #print (i, word, 'is a Last name')
+            lastNameCount += 1;
+        elif word in geoName :
+            #print (i, word, 'is a Last name')
+            geoNameCount += 1;
+        else :
+            unknownCount += 1;
+            #print (i, word, freq)
+            unknownWords.append([word, freq])
+            #b = dictMatch.extractBests(word)
+            #print (i, word, freq, b)
         i += 1;
+    sorted_x = sorted(unknownWords, key=lambda x:x[1]);
+    sorted_x.reverse();
     
+    for i, r in enumerate(sorted_x):
+        print (i, r[0], r[1])
+
     print ('total', len(top100))
     print ('cityNameCount =', cityNameCount);
     print ('peopleFirstName =', firstNameCount);
     print ('peopleLastName =', lastNameCount);
+    print ('geoNameCount =', geoNameCount);
     print ('englishDictCount =', englishDictCount);
     print ('unknownCount =', unknownCount);
     pass
