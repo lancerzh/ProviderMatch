@@ -6,6 +6,7 @@ Created on Mar 29, 2017
 
 import re
 import extractSample as es
+import readNamesFromDB as namedb
 import dictMatch;
 
 def data2Map (data):
@@ -20,13 +21,15 @@ if __name__ == '__main__':
     citynames = data2Map(es.extractFreqBetween(es.readAll('../origData/Address_City_NameDict.csv'), 200))
     peopleFirstName = data2Map(es.extractFreqBetween(es.readAll('../origData/Provider_First_Name.csv'), 200))
     peopleLastName = data2Map(es.extractFreqBetween(es.readAll('../origData/Provider_Last_Name.csv'), 200))
-    geoName = data2Map(es.extractFreqBetween(es.readAll('../origData/geoname.csv'), 200))
-    print (len(citynames))
-    print (len(peopleFirstName))
-    print (len(peopleLastName))
-    print (len(geoName))
+    allNames = data2Map(namedb.readNames())
+    geoName = data2Map(es.extractFreqBetween(es.readAll('../origData/geoname.csv'), 10))
+    print ('citynames', len(citynames))
+    print ('peopleFirstName', len(peopleFirstName))
+    print ('peopleLastName', len(peopleLastName))
+    print ('allNames', len(allNames))
+    print ('geoName', len(geoName))
     
-    allData = es.extractFreqBetween(es.readAll('../origData/Provider_Organization_NameDict.csv'), 100)
+    allData = es.extractFreqBetween(es.readAll('../origData/Address_Second_LineDict.csv'), 100)
     #top100 = es.extractTopFreq(allData, 100000);
     top100 = allData;
     
@@ -34,6 +37,7 @@ if __name__ == '__main__':
     cityNameCount = 0;
     firstNameCount = 0;
     lastNameCount = 0;
+    allNamesCount = 0;
     geoNameCount = 0;
     englishDictCount = 0;
     unknownCount = 0
@@ -51,6 +55,9 @@ if __name__ == '__main__':
         elif word in peopleLastName :
             #print (i, word, 'is a Last name')
             lastNameCount += 1;
+        elif word in allNames :
+            #print (i, word, 'is a Last name')
+            allNamesCount += 1;
         elif word in geoName :
             #print (i, word, 'is a Last name')
             geoNameCount += 1;
@@ -71,6 +78,7 @@ if __name__ == '__main__':
     print ('cityNameCount =', cityNameCount);
     print ('peopleFirstName =', firstNameCount);
     print ('peopleLastName =', lastNameCount);
+    print ('allName =', allNamesCount);
     print ('geoNameCount =', geoNameCount);
     print ('englishDictCount =', englishDictCount);
     print ('unknownCount =', unknownCount);
